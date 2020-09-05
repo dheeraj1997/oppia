@@ -439,6 +439,8 @@ import { ProfileSummaryObjectFactory } from
 import { PythonProgramTokenizer } from 'classifiers/python-program.tokenizer';
 import { QuestionBackendApiService } from
   'domain/question/question-backend-api.service.ts';
+import { QuestionObjectFactory } from
+  'domain/question/QuestionObjectFactory.ts';
 import { QuestionSummaryForOneSkillObjectFactory }
   from 'domain/question/QuestionSummaryForOneSkillObjectFactory';
 import { QuestionSummaryObjectFactory } from
@@ -1680,6 +1682,8 @@ export class UpgradedServices {
       upgradedServices['WrittenTranslationsObjectFactory']);
 
     // Topological level: 9.
+    upgradedServices['QuestionObjectFactory'] = new QuestionObjectFactory(
+      upgradedServices['QuestionObjectFactory']);
     upgradedServices['StatesObjectFactory'] = new StatesObjectFactory(
       upgradedServices['StateObjectFactory']);
 

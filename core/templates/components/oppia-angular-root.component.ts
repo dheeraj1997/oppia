@@ -482,6 +482,8 @@ import { ProfileSummaryObjectFactory } from
 import { PythonProgramTokenizer } from 'classifiers/python-program.tokenizer';
 import { QuestionBackendApiService } from
   'domain/question/question-backend-api.service.ts';
+import { QuestionObjectFactory } from
+  'domain/question/QuestionObjectFactory.ts';
 import { QuestionSummaryForOneSkillObjectFactory }
   from 'domain/question/QuestionSummaryForOneSkillObjectFactory';
 import { QuestionSummaryObjectFactory } from
@@ -934,6 +936,7 @@ export class OppiaAngularRootComponent implements AfterViewInit {
   static profileSummaryObjectFactory: ProfileSummaryObjectFactory;
   static pythonProgramTokenizer: PythonProgramTokenizer;
   static questionBackendApiService: QuestionBackendApiService;
+  static questionObjectFactory: QuestionObjectFactory;
   static questionSummaryForOneSkillObjectFactory: QuestionSummaryForOneSkillObjectFactory;
   static questionSummaryObjectFactory: QuestionSummaryObjectFactory;
   static readOnlyCollectionBackendApiService: ReadOnlyCollectionBackendApiService;
@@ -1269,6 +1272,7 @@ private profilePageBackendApiService: ProfilePageBackendApiService,
 private profileSummaryObjectFactory: ProfileSummaryObjectFactory,
 private pythonProgramTokenizer: PythonProgramTokenizer,
 private questionBackendApiService: QuestionBackendApiService,
+private questionObjectFactory: QuestionObjectFactory,
 private questionSummaryForOneSkillObjectFactory: QuestionSummaryForOneSkillObjectFactory,
 private questionSummaryObjectFactory: QuestionSummaryObjectFactory,
 private readOnlyCollectionBackendApiService: ReadOnlyCollectionBackendApiService,
@@ -1605,6 +1609,7 @@ private writtenTranslationsObjectFactory: WrittenTranslationsObjectFactory
     OppiaAngularRootComponent.profileSummaryObjectFactory = this.profileSummaryObjectFactory;
     OppiaAngularRootComponent.pythonProgramTokenizer = this.pythonProgramTokenizer;
     OppiaAngularRootComponent.questionBackendApiService = this.questionBackendApiService;
+    OppiaAngularRootComponent.questionObjectFactory = this.questionObjectFactory;
     OppiaAngularRootComponent.questionSummaryForOneSkillObjectFactory = this.questionSummaryForOneSkillObjectFactory;
     OppiaAngularRootComponent.questionSummaryObjectFactory = this.questionSummaryObjectFactory;
     OppiaAngularRootComponent.readOnlyCollectionBackendApiService = this.readOnlyCollectionBackendApiService;
