@@ -20,8 +20,8 @@ import { downgradeInjectable } from '@angular/upgrade/static';
 import { Injectable } from '@angular/core';
 import { State, StateObjectFactory, StateBackendDict }
   from 'domain/state/StateObjectFactory';
-import {DEFAULT_LANGUAGE_CODE} from 'assets/constants';
 
+const DEFAULT_LANGUAGE_CODE = require('assets/constants').DEFAULT_LANGUAGE_CODE;
 const INTERACTION_SPECS = require('interactions/interaction_specs.json');
 
 export interface QuestionBackendDict {
@@ -80,7 +80,8 @@ export class Question {
     return this._inApplicableMisconceptionIds;
   }
 
-  setInApplicableMisconceptionIds(inApplicableMisconceptionIds: string[]): void {
+  setInApplicableMisconceptionIds(
+      inApplicableMisconceptionIds: string[]): void {
     this._inApplicableMisconceptionIds = inApplicableMisconceptionIds;
   }
 
