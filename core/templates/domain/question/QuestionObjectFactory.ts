@@ -21,7 +21,8 @@ import { Injectable } from '@angular/core';
 import { State, StateObjectFactory, StateBackendDict }
   from 'domain/state/StateObjectFactory';
 
-const DEFAULT_LANGUAGE_CODE = require('assets/constants').DEFAULT_LANGUAGE_CODE;
+const DEFAULT_LANGUAGE_CODE = require(
+  '../../../../assets/constants').DEFAULT_LANGUAGE_CODE;
 const INTERACTION_SPECS = require('interactions/interaction_specs.json');
 
 export interface QuestionBackendDict {
