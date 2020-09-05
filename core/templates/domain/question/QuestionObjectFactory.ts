@@ -20,14 +20,13 @@ import { downgradeInjectable } from '@angular/upgrade/static';
 import { Injectable } from '@angular/core';
 import { State, StateObjectFactory, StateBackendDict }
   from 'domain/state/StateObjectFactory';
-import DEFAULT_LANGUAGE_CODE from 'assets/constants';
+import {DEFAULT_LANGUAGE_CODE} from 'assets/constants';
 
 const INTERACTION_SPECS = require('interactions/interaction_specs.json');
 
 export interface QuestionBackendDict {
   'id': string;
   'question_state_data': StateBackendDict,
-  'question_state_data_schema_version': number;
   'language_code': string;
   'version': number;
   'linked_skill_ids': string[];
@@ -36,15 +35,15 @@ export interface QuestionBackendDict {
 
 export class Question {
   constructor(
-    private _id: number,
+    private _id: string,
     private _stateData: State,
-    private _languageCode: typeof DEFAULT_LANGUAGE_CODE,
+    private _languageCode: string,
     private _version: number,
-    private _linkedSkillIds: number,
-    private _inApplicableMisconceptionIds: Array<number>
+    private _linkedSkillIds: string[],
+    private _inApplicableMisconceptionIds: string[]
   ) { }
 
-  getId(): number {
+  getId(): string {
     return this._id;
   }
 
@@ -52,15 +51,15 @@ export class Question {
     return this._stateData;
   }
 
-  setStateData(newStateData): void {
+  setStateData(newStateData: State): void {
     this._stateData = angular.copy(newStateData);
   }
 
-  getLanguageCode(): typeof DEFAULT_LANGUAGE_CODE {
+  getLanguageCode(): string {
     return this._languageCode;
   }
 
-  setLanguageCode(languageCode): void {
+  setLanguageCode(languageCode: string): void {
     this._languageCode = languageCode;
   }
 
@@ -68,24 +67,24 @@ export class Question {
     return this._version;
   }
 
-  getLinkedSkillIds(): number {
+  getLinkedSkillIds(): string[] {
     return this._linkedSkillIds;
   }
 
-  setLinkedSkillIds(linkedSkillIds): void {
+  setLinkedSkillIds(linkedSkillIds: string[]): void {
     this._linkedSkillIds = linkedSkillIds;
   }
 
 
-  getInApplicableMisconceptionIds(): Array<number> {
+  getInApplicableMisconceptionIds(): string[] {
     return this._inApplicableMisconceptionIds;
-  };
+  }
 
-  setInApplicableMisconceptionIds(inApplicableMisconceptionIds): void {
+  setInApplicableMisconceptionIds(inApplicableMisconceptionIds: string[]): void {
     this._inApplicableMisconceptionIds = inApplicableMisconceptionIds;
-  };
+  }
 
-  getValidationErrorMessage() {
+  getValidationErrorMessage(): string {
     var interaction = this._stateData.interaction;
     if (interaction.id === null) {
       return 'An interaction must be specified';
@@ -110,9 +109,9 @@ export class Question {
       return 'At least one answer should be marked correct';
     }
     return null;
-  };
+  }
 
-  getUnaddressedMisconceptionNames(misconceptionsBySkill) {
+  getUnaddressedMisconceptionNames(misconceptionsBySkill: object): string[] {
     var answerGroups = this._stateData.interaction.answerGroups;
     var taggedSkillMisconceptionIds = {};
     for (var i = 0; i < answerGroups.length; i++) {
@@ -138,9 +137,9 @@ export class Question {
       }
     });
     return unaddressedMisconceptionNames;
-  };
-  
-  toBackendDict(isNewQuestion) {
+  }
+
+  toBackendDict(isNewQuestion: boolean): QuestionBackendDict {
     var questionBackendDict = {
       id: null,
       question_state_data: this._stateData.toBackendDict(),
@@ -154,8 +153,7 @@ export class Question {
       questionBackendDict.version = this._version;
     }
     return questionBackendDict;
-  };
-
+  }
 }
 
 @Injectable({
@@ -166,14 +164,14 @@ export class QuestionObjectFactory {
     private stateObjectFactory: StateObjectFactory
   ) { }
 
-  createDefaultQuestion(skillIds): Question {
+  createDefaultQuestion(skillIds: string[]): Question {
     /* eslint-enable dot-notation */
     return new Question(
       null, this.stateObjectFactory.createDefaultState(null),
       DEFAULT_LANGUAGE_CODE, 1, skillIds, []);
-  };
+  }
 
-  createFromBackendDict(questionBackendDict): Question {
+  createFromBackendDict(questionBackendDict: QuestionBackendDict): Question {
     return new Question(
       questionBackendDict.id,
       this.stateObjectFactory.createFromBackendDict(
@@ -182,8 +180,7 @@ export class QuestionObjectFactory {
       questionBackendDict.linked_skill_ids,
       questionBackendDict.inapplicable_misconception_ids
     );
-  };
-
+  }
 }
 
 angular.module('oppia').factory(
