@@ -16,10 +16,13 @@
  * @fileoverview Factory for creating and mutating instances of frontend
  * question domain objects.
  */
+import { downgradeInjectable } from '@angular/upgrade/static';
+import { Injectable } from '@angular/core';
+import { State, StateObjectFactory, StateBackendDict }
+  from 'domain/state/StateObjectFactory';
+import DEFAULT_LANGUAGE_CODE from 'assets/constants';
 
-require('domain/state/StateObjectFactory.ts');
-
-import { StateBackendDict } from 'domain/state/StateObjectFactory';
+const INTERACTION_SPECS = require('interactions/interaction_specs.json');
 
 export interface QuestionBackendDict {
   'id': string;
@@ -31,158 +34,158 @@ export interface QuestionBackendDict {
   'inapplicable_misconception_ids': string[];
 }
 
-angular.module('oppia').factory('QuestionObjectFactory', [
-  'StateObjectFactory', 'DEFAULT_LANGUAGE_CODE', 'INTERACTION_SPECS',
-  function(StateObjectFactory, DEFAULT_LANGUAGE_CODE, INTERACTION_SPECS) {
-    var Question = function(
-        id, stateData, languageCode, version, linkedSkillIds,
-        inApplicableMisconceptionIds) {
-      this._id = id;
-      this._stateData = stateData;
-      this._languageCode = languageCode;
-      this._version = version;
-      this._linkedSkillIds = linkedSkillIds;
-      this._inApplicableMisconceptionIds = inApplicableMisconceptionIds;
-    };
+export class Question {
+  constructor(
+    private _id: number,
+    private _stateData: State,
+    private _languageCode: typeof DEFAULT_LANGUAGE_CODE,
+    private _version: number,
+    private _linkedSkillIds: number,
+    private _inApplicableMisconceptionIds: Array<number>
+  ) { }
 
-    // ---- Instance methods ----
+  getId(): number {
+    return this._id;
+  }
 
-    Question.prototype.getId = function() {
-      return this._id;
-    };
+  getStateData(): State {
+    return this._stateData;
+  }
 
-    Question.prototype.getStateData = function() {
-      return this._stateData;
-    };
+  setStateData(newStateData): void {
+    this._stateData = angular.copy(newStateData);
+  }
 
-    Question.prototype.setStateData = function(newStateData) {
-      this._stateData = angular.copy(newStateData);
-    };
+  getLanguageCode(): typeof DEFAULT_LANGUAGE_CODE {
+    return this._languageCode;
+  }
 
-    Question.prototype.getLanguageCode = function() {
-      return this._languageCode;
-    };
+  setLanguageCode(languageCode): void {
+    this._languageCode = languageCode;
+  }
 
-    Question.prototype.setLanguageCode = function(languageCode) {
-      this._languageCode = languageCode;
-    };
+  getVersion(): number {
+    return this._version;
+  }
 
-    Question.prototype.getVersion = function() {
-      return this._version;
-    };
+  getLinkedSkillIds(): number {
+    return this._linkedSkillIds;
+  }
 
-    Question.prototype.getLinkedSkillIds = function() {
-      return this._linkedSkillIds;
-    };
+  setLinkedSkillIds(linkedSkillIds): void {
+    this._linkedSkillIds = linkedSkillIds;
+  }
 
-    Question.prototype.setLinkedSkillIds = function(linkedSkillIds) {
-      this._linkedSkillIds = linkedSkillIds;
-    };
 
-    Question.prototype.getInApplicableMisconceptionIds = function() {
-      return this._inApplicableMisconceptionIds;
-    };
+  getInApplicableMisconceptionIds(): Array<number> {
+    return this._inApplicableMisconceptionIds;
+  };
 
-    Question.prototype.setInApplicableMisconceptionIds = function(
-        inApplicableMisconceptionIds) {
-      this._inApplicableMisconceptionIds = inApplicableMisconceptionIds;
-    };
+  setInApplicableMisconceptionIds(inApplicableMisconceptionIds): void {
+    this._inApplicableMisconceptionIds = inApplicableMisconceptionIds;
+  };
 
-    // TODO(ankita240796): Remove the bracket notation once Angular2 gets in.
-    /* eslint-disable dot-notation */
-    Question['createDefaultQuestion'] = function(skillIds) {
-    /* eslint-enable dot-notation */
-      return new Question(
-        null, StateObjectFactory.createDefaultState(null),
-        DEFAULT_LANGUAGE_CODE, 1, skillIds, []);
-    };
-
-    Question.prototype.getValidationErrorMessage = function() {
-      var interaction = this._stateData.interaction;
-      if (interaction.id === null) {
-        return 'An interaction must be specified';
+  getValidationErrorMessage() {
+    var interaction = this._stateData.interaction;
+    if (interaction.id === null) {
+      return 'An interaction must be specified';
+    }
+    if (interaction.hints.length === 0) {
+      return 'At least 1 hint should be specified';
+    }
+    if (
+      !interaction.solution &&
+      INTERACTION_SPECS[interaction.id].can_have_solution) {
+      return 'A solution must be specified';
+    }
+    var answerGroups = this._stateData.interaction.answerGroups;
+    var atLeastOneAnswerCorrect = false;
+    for (var i = 0; i < answerGroups.length; i++) {
+      if (answerGroups[i].outcome.labelledAsCorrect) {
+        atLeastOneAnswerCorrect = true;
+        continue;
       }
-      if (interaction.hints.length === 0) {
-        return 'At least 1 hint should be specified';
+    }
+    if (!atLeastOneAnswerCorrect) {
+      return 'At least one answer should be marked correct';
+    }
+    return null;
+  };
+
+  getUnaddressedMisconceptionNames(misconceptionsBySkill) {
+    var answerGroups = this._stateData.interaction.answerGroups;
+    var taggedSkillMisconceptionIds = {};
+    for (var i = 0; i < answerGroups.length; i++) {
+      if (!answerGroups[i].outcome.labelledAsCorrect &&
+          answerGroups[i].taggedSkillMisconceptionId !== null) {
+        taggedSkillMisconceptionIds[
+          answerGroups[i].taggedSkillMisconceptionId] = true;
       }
-      if (
-        !interaction.solution &&
-        INTERACTION_SPECS[interaction.id].can_have_solution) {
-        return 'A solution must be specified';
-      }
-      var answerGroups = this._stateData.interaction.answerGroups;
-      var atLeastOneAnswerCorrect = false;
-      for (var i = 0; i < answerGroups.length; i++) {
-        if (answerGroups[i].outcome.labelledAsCorrect) {
-          atLeastOneAnswerCorrect = true;
+    }
+    var unaddressedMisconceptionNames = [];
+    Object.keys(misconceptionsBySkill).forEach(function(skillId) {
+      for (var i = 0; i < misconceptionsBySkill[skillId].length; i++) {
+        if (!misconceptionsBySkill[skillId][i].isMandatory()) {
           continue;
         }
-      }
-      if (!atLeastOneAnswerCorrect) {
-        return 'At least one answer should be marked correct';
-      }
-      return null;
-    };
-
-    Question.prototype.getUnaddressedMisconceptionNames = function(
-        misconceptionsBySkill) {
-      var answerGroups = this._stateData.interaction.answerGroups;
-      var taggedSkillMisconceptionIds = {};
-      for (var i = 0; i < answerGroups.length; i++) {
-        if (!answerGroups[i].outcome.labelledAsCorrect &&
-            answerGroups[i].taggedSkillMisconceptionId !== null) {
-          taggedSkillMisconceptionIds[
-            answerGroups[i].taggedSkillMisconceptionId] = true;
+        var skillMisconceptionId = (
+          skillId + '-' + misconceptionsBySkill[skillId][i].getId());
+        if (!taggedSkillMisconceptionIds.hasOwnProperty(
+          skillMisconceptionId)) {
+          unaddressedMisconceptionNames.push(
+            misconceptionsBySkill[skillId][i].getName());
         }
       }
-      var unaddressedMisconceptionNames = [];
-      Object.keys(misconceptionsBySkill).forEach(function(skillId) {
-        for (var i = 0; i < misconceptionsBySkill[skillId].length; i++) {
-          if (!misconceptionsBySkill[skillId][i].isMandatory()) {
-            continue;
-          }
-          var skillMisconceptionId = (
-            skillId + '-' + misconceptionsBySkill[skillId][i].getId());
-          if (!taggedSkillMisconceptionIds.hasOwnProperty(
-            skillMisconceptionId)) {
-            unaddressedMisconceptionNames.push(
-              misconceptionsBySkill[skillId][i].getName());
-          }
-        }
-      });
-      return unaddressedMisconceptionNames;
+    });
+    return unaddressedMisconceptionNames;
+  };
+  
+  toBackendDict(isNewQuestion) {
+    var questionBackendDict = {
+      id: null,
+      question_state_data: this._stateData.toBackendDict(),
+      language_code: this._languageCode,
+      linked_skill_ids: this._linkedSkillIds,
+      inapplicable_misconception_ids: this._inApplicableMisconceptionIds,
+      version: 0,
     };
+    if (!isNewQuestion) {
+      questionBackendDict.id = this._id;
+      questionBackendDict.version = this._version;
+    }
+    return questionBackendDict;
+  };
 
-    // TODO(ankita240796): Remove the bracket notation once Angular2 gets in.
-    /* eslint-disable dot-notation */
-    Question['createFromBackendDict'] = function(questionBackendDict) {
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class QuestionObjectFactory {
+  constructor(
+    private stateObjectFactory: StateObjectFactory
+  ) { }
+
+  createDefaultQuestion(skillIds): Question {
     /* eslint-enable dot-notation */
-      return new Question(
-        questionBackendDict.id,
-        StateObjectFactory.createFromBackendDict(
-          'question', questionBackendDict.question_state_data),
-        questionBackendDict.language_code, questionBackendDict.version,
-        questionBackendDict.linked_skill_ids,
-        questionBackendDict.inapplicable_misconception_ids
-      );
-    };
+    return new Question(
+      null, this.stateObjectFactory.createDefaultState(null),
+      DEFAULT_LANGUAGE_CODE, 1, skillIds, []);
+  };
 
-    Question.prototype.toBackendDict = function(isNewQuestion) {
-      var questionBackendDict = {
-        id: null,
-        question_state_data: this._stateData.toBackendDict(),
-        language_code: this._languageCode,
-        linked_skill_ids: this._linkedSkillIds,
-        inapplicable_misconception_ids: this._inApplicableMisconceptionIds,
-        version: 0,
-      };
-      if (!isNewQuestion) {
-        questionBackendDict.id = this._id;
-        questionBackendDict.version = this._version;
-      }
-      return questionBackendDict;
-    };
+  createFromBackendDict(questionBackendDict): Question {
+    return new Question(
+      questionBackendDict.id,
+      this.stateObjectFactory.createFromBackendDict(
+        'question', questionBackendDict.question_state_data),
+      questionBackendDict.language_code, questionBackendDict.version,
+      questionBackendDict.linked_skill_ids,
+      questionBackendDict.inapplicable_misconception_ids
+    );
+  };
 
-    return Question;
-  }
-]);
+}
+
+angular.module('oppia').factory(
+  'QuestionObjectFactory',
+  downgradeInjectable(QuestionObjectFactory));
